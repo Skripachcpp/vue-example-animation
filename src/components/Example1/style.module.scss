@@ -1,0 +1,105 @@
+$anm-time: 5s;
+$tick: 1s;
+$timeline: (
+        'begin': 0s,
+        'show-1': 2s,
+        'non-0': 1s,
+        'show-2': 2s,
+        'end': 0s
+);
+
+// $totaltime:                      Total of all timecodes in $timeline
+// $timelineAccumulated:    Accumulated timeline map based on $timeline
+$totaltime: 0s;
+$timelineAccumulated: ();
+@each $key, $time in $timeline {
+  $timelineAccumulated: map-merge($timelineAccumulated, (($key + '-from') : $totaltime) );
+  $totaltime: $totaltime + $time;
+  $timelineAccumulated: map-merge($timelineAccumulated, (($key + '-to') : $totaltime) );
+}
+
+// Timecode to Percent function
+// Params:
+//  $key:           key/position in timeline
+//  $offset:    optional offset to add to time from timeline (use negative number to subtract)
+// Return:      Percentage value of keyposition in timeline.
+@function from($key, $offset: 0s) {
+  @return (map-get($timelineAccumulated, ($key + '-from')) + $offset) / $totaltime * 100%;
+}
+
+// Timecode to Percent function
+// Params:
+//  $key:           key/position in timeline
+//  $offset:    optional offset to add to time from timeline (use negative number to subtract)
+// Return:      Percentage value of keyposition in timeline.
+@function to($key, $offset: 0s) {
+  @return (map-get($timelineAccumulated, ($key + '-to')) + $offset) / $totaltime * 100%;
+}
+
+@keyframes rectangle-frame {
+  #{from('begin')} { left: -60px; }
+
+  #{from('show-1')} { left: -60px;  }
+  #{to('show-1')} { left: 10px; }
+
+  #{to('end')} { left: 10px;}
+}
+
+@keyframes round-frame {
+  #{from('begin')} { top: 110%; }
+
+  #{from('show-1', -0.5s)} { top: 110%; }
+  #{to('show-1', -0.5s)} { top: 0; }
+
+  #{to('end')} { top: 0;  }
+}
+
+
+.box {
+  height: 300px;
+  width: 300px;
+
+  background-color: red;
+  position: relative;
+}
+
+.left {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  bottom: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  animation: rectangle-frame $totaltime linear infinite;
+}
+
+.right {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  bottom: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  animation: round-frame $totaltime linear infinite;
+}
+
+.rectangle {
+  background-color: yellow;
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+
+.round {
+  border-radius: 100%;
+  position: relative;
+  background-color: black;
+  width: 50px;
+  height: 50px;
+}
